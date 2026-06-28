@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyTask</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg:            #0b1220;   /* darker background */
+    --surface:       #111a2e;   /* dark card surface */
+    --g-start:       #4338ca;
+    --g-end:         #7c3aed;
+    --text:          #f8fafc;
+    --muted:         #94a3b8;
+    --border:        #1f2a44;
+    --danger:        #ef4444;
+    --danger-bg:     rgba(239, 68, 68, 0.12);
+    --c1: #6366f1;
+    --c2: #8b5cf6;
+    --c3: #ec4899;
+    --c4: #f59e0b;
+    --c5: #10b981;
+    --c6: #0ea5e9;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ── HEADER ── */
+header {
+    background: #0f172a;
+    border-bottom: 1px solid var(--border);
+    padding: 0 28px;
+    height: 62px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.35);
+}
+
+.logo {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--g-start), var(--g-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* search */
+.search-wrap {
+    position: relative;
+}
+
+.search-wrap svg {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.search-input {
+    padding: 8px 12px 8px 34px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #0b1220;
+    color: var(--text);
+    width: 230px;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.search-input::placeholder { color: var(--muted); }
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--g-start);
+    background: #111a2e;
+    box-shadow: 0 0 0 3px rgba(67,56,202,0.15);
+}
+
+/* badge */
+.badge {
+    background: linear-gradient(135deg, var(--g-start), var(--g-end));
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    white-space: nowrap;
+}
+
+/* ── MAIN LAYOUT ── */
+main {
+    display: flex;
+    flex: 1;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+    width: 290px;
+    flex-shrink: 0;
+    background: linear-gradient(170deg, #1a1f3a 0%, #2a1450 100%);
+    padding: 32px 22px;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 62px;
+    height: calc(100vh - 62px);
+    overflow-y: auto;
+}
+
+.sidebar-eyebrow {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 6px;
+}
+
+.sidebar-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.25;
+    margin-bottom: 28px;
+}
+
+.form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 6px;
+    letter-spacing: 0.2px;
+}
+
+.form-group {
+    margin-bottom: 14px;
+}
+
+.glass-input {
+    width: 100%;
+    padding: 11px 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.glass-input::placeholder { color: rgba(255,255,255,0.4); }
+
+.glass-input:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.1);
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+}
+
+textarea.glass-input {
+    resize: none;
+    height: 108px;
+    line-height: 1.6;
+}
+
+.create-btn {
+    width: 100%;
+    padding: 13px;
+    background: #fff;
+    color: var(--g-start);
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s;
+    margin-top: 6px;
+    letter-spacing: -0.2px;
+}
+
+.create-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+
+.create-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 22px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.4);
+    font-size: 11.5px;
+    line-height: 1.55;
+}
+
+/* ── CONTENT ── */
+.content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+    min-height: 0;
+    background: var(--bg);
+}
+
+.content-header {
+    margin-bottom: 22px;
+}
+
+.content-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+}
+
+.content-sub {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+/* ── TASK LIST ── */
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+
+/* ── TASK CARD ── */
+.task-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 18px 18px 22px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+    animation: slide-in 0.22s ease both;
+}
+
+.task-card:hover {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    transform: translateY(-1px);
+    border-color: #2a3550;
+}
+
+/* coloured left border */
+.task-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: 12px 0 0 12px;
+}
+
+.task-card:nth-child(6n+1)::before { background: var(--c1); }
+.task-card:nth-child(6n+2)::before { background: var(--c2); }
+.task-card:nth-child(6n+3)::before { background: var(--c3); }
+.task-card:nth-child(6n+4)::before { background: var(--c4); }
+.task-card:nth-child(6n+5)::before { background: var(--c5); }
+.task-card:nth-child(6n+0)::before { background: var(--c6); }
+
+.task-body { flex: 1; min-width: 0; }
+
+.task-id {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    color: var(--muted);
+    background: #0b1220;
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 7px;
+}
+
+.task-title {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+    line-height: 1.3;
+}
+
+.task-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+/* delete button */
+.del-btn {
+    flex-shrink: 0;
+    background: #0b1220;
+    border: 1.5px solid var(--border);
+    color: var(--muted);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.18s;
+}
+
+.del-btn:hover {
+    background: rgba(239,68,68,0.15);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--muted);
+}
+
+.empty h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.empty p {
+    font-size: 13.5px;
+}
+
+/* ── ANIMATION ── */
+@keyframes slide-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 780px) {
+    main { flex-direction: column; }
+
+    .sidebar {
+        width: 100%;
+        position: static;
+        height: auto;
+    }
+
+    .content { padding: 20px; }
+
+    .search-input { width: 160px; }
+}    
+</style>
+
+</head>
+<body>
+
+<header>
+    <div class="logo">EasyTask</div>
+    <div class="header-right">
+        <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input type="text" class="search-input" id="search" placeholder="Search tasks…">
+        </div>
+        <div class="badge" id="taskCount">0 Tasks</div>
+    </div>
+</header>
+
+<main>
+
+    <!-- SIDEBAR: create form -->
+    <aside class="sidebar">
+        <div class="sidebar-eyebrow">Task Manager</div>
+        <div class="sidebar-heading">Create a new task</div>
+
+        <form id="taskForm">
+            <div class="form-group">
+                <label class="form-label" for="title">Title</label>
+                <input class="glass-input" type="text" id="title" placeholder="What needs to be done?" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="description">Description</label>
+                <textarea class="glass-input" id="description" placeholder="Add any details…" required></textarea>
+            </div>
+            <button type="submit" class="create-btn">+ Create Task</button>
+        </form>
+
+        <p class="sidebar-footer">Tasks sync with your server in real time.</p>
+    </aside>
+
+    <!-- CONTENT: task list -->
+    <section class="content">
+        <div class="content-header">
+            <div class="content-heading">Your Tasks</div>
+            <div class="content-sub">Everything you need to get done</div>
+        </div>
+        <div id="taskList" class="task-list"></div>
+    </section>
+
+</main>
+
+<script>
+const API_URL = "http://localhost:3000/tasks";
+let tasks = [];
+
+/* ── LOAD ── */
+async function loadTasks() {
+    try {
+        const res = await fetch(API_URL);
+        tasks = await res.json();
+        renderTasks(tasks);
+    } catch (err) {
+        console.error(err);
+        document.getElementById("taskList").innerHTML = `
+            <div class="empty">
+                <span class="empty-icon">⚡</span>
+                <h3>Can't reach the server</h3>
+                <p>Make sure the API is running at ${API_URL}</p>
+            </div>`;
+    }
+}
+
+/* ── RENDER ── */
+function renderTasks(data) {
+    const list  = document.getElementById("taskList");
+    const count = document.getElementById("taskCount");
+    count.textContent = `${data.length} Task${data.length !== 1 ? "s" : ""}`;
+
+    if (!data.length) {
+        list.innerHTML = `
+            <div class="empty">
+                <span class="empty-icon">📋</span>
+                <h3>All clear!</h3>
+                <p>Create your first task using the form on the left.</p>
+            </div>`;
+        return;
+    }
+
+    list.innerHTML = data.map(t => `
+        <div class="task-card">
+            <div class="task-body">
+                <span class="task-id">#${t.id}</span>
+                <div class="task-title">${t.title}</div>
+                <div class="task-desc">${t.description}</div>
+            </div>
+            <button class="del-btn" onclick="deleteTask(${t.id})" title="Delete task" aria-label="Delete task">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14H6L5 6"/>
+                    <path d="M10 11v6"/><path d="M14 11v6"/>
+                    <path d="M9 6V4h6v2"/>
+                </svg>
+            </button>
+        </div>
+    `).join("");
+}
+
+/* ── CREATE ── */
+document.getElementById("taskForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const title       = document.getElementById("title").value.trim();
+    const description = document.getElementById("description").value.trim();
+    if (!title || !description) return;
+    try {
+        await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title, description })
+        });
+        e.target.reset();
+        loadTasks();
+    } catch (err) { console.error(err); }
+});
+
+/* ── DELETE ── */
+async function deleteTask(id) {
+    try {
+        await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+        loadTasks();
+    } catch (err) { console.error(err); }
+}
+
+/* ── SEARCH ── */
+document.getElementById("search").addEventListener("input", (e) => {
+    const q = e.target.value.toLowerCase();
+    renderTasks(tasks.filter(t =>
+        t.title.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q)
+    ));
+});
+
+loadTasks();
+</script>
+
+</body>
+</html>
