@@ -9,7 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 /**
- * SQL CONFIG (Azure-ready)
+ * SQL CONFIG (Azure SQL)
  */
 const config = {
     user: process.env.DB_USER,
@@ -24,15 +24,15 @@ const config = {
     }
 };
 
-let pool;
+let pool = null;
 
 /**
- * Connect once and reuse pool (IMPORTANT FIX)
+ * Connect to DB (NON-BLOCKING STARTUP)
  */
-async function startServer() {
+async function startDatabase() {
     try {
         pool = await sql.connect(config);
-        console.log("Connected to SQL Server");
+        console.log("✅ Connected to SQL Server");
 
         await pool.request().query(`
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'tasks')
@@ -45,19 +45,19 @@ async function startServer() {
             END
         `);
 
-        console.log("Table ready");
+        console.log("✅ Table ready");
 
     } catch (err) {
-        console.error("DATABASE CONNECTION FAILED ❌", err);
-        process.exit(1);
+        console.error("❌ DB CONNECTION FAILED:", err.message);
+        pool = null; // prevent crash
     }
 }
 
 /**
- * Health check (Azure monitoring)
+ * HEALTH CHECK (for Azure)
  */
 app.get("/health", (req, res) => {
-    res.status(200).json({ status: "OK" });
+    res.json({ status: "OK" });
 });
 
 /**
@@ -65,8 +65,13 @@ app.get("/health", (req, res) => {
  */
 app.get("/tasks", async (req, res) => {
     try {
+        if (!pool) {
+            return res.status(500).json({ message: "Database not connected" });
+        }
+
         const result = await pool.request().query("SELECT * FROM tasks");
         res.status(200).json(result.recordset);
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error retrieving tasks" });
@@ -74,10 +79,14 @@ app.get("/tasks", async (req, res) => {
 });
 
 /**
- * POST task
+ * CREATE task
  */
 app.post("/tasks", async (req, res) => {
     try {
+        if (!pool) {
+            return res.status(500).json({ message: "Database not connected" });
+        }
+
         const { title, description } = req.body;
 
         await pool.request()
@@ -101,6 +110,10 @@ app.post("/tasks", async (req, res) => {
  */
 app.delete("/tasks/:id", async (req, res) => {
     try {
+        if (!pool) {
+            return res.status(500).json({ message: "Database not connected" });
+        }
+
         const { id } = req.params;
 
         await pool.request()
@@ -118,12 +131,13 @@ app.delete("/tasks/:id", async (req, res) => {
 });
 
 /**
- * Start server AFTER DB connection
+ * START SERVER (Azure-safe)
  */
 const PORT = process.env.PORT || 3000;
 
-startServer().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
+app.listen(PORT, async () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+
+    // connect DB AFTER server starts
+    await startDatabase();
 });
