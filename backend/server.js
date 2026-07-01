@@ -9,7 +9,14 @@ app.use(cors());
 app.use(express.json());
 
 /**
- * SQL CONFIG (Azure SQL)
+ * Basic sanity check (prevents silent crashes)
+ */
+console.log("🚀 Starting app...");
+console.log("DB_SERVER:", process.env.DB_SERVER);
+console.log("DB_NAME:", process.env.DB_NAME);
+
+/**
+ * SQL CONFIG
  */
 const config = {
     user: process.env.DB_USER,
@@ -18,21 +25,22 @@ const config = {
     database: process.env.DB_NAME,
     options: {
         encrypt: true,
-        trustServerCertificate: false,
-        connectTimeout: 30000,
-        requestTimeout: 30000
+        trustServerCertificate: false
     }
 };
 
 let pool = null;
 
 /**
- * Connect to DB (NON-BLOCKING STARTUP)
+ * DB CONNECTION (SAFE - DOES NOT CRASH APP)
  */
-async function startDatabase() {
+async function connectDB() {
     try {
+        console.log("🔌 Connecting to DB...");
+
         pool = await sql.connect(config);
-        console.log("✅ Connected to SQL Server");
+
+        console.log("✅ DB connected");
 
         await pool.request().query(`
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'tasks')
@@ -48,43 +56,45 @@ async function startDatabase() {
         console.log("✅ Table ready");
 
     } catch (err) {
-        console.error("❌ DB CONNECTION FAILED:", err.message);
-        pool = null; // prevent crash
+        console.error("❌ DB CONNECTION ERROR:");
+        console.error(err.message);
+
+        pool = null; // IMPORTANT: prevent crash
     }
 }
 
 /**
- * HEALTH CHECK (for Azure)
+ * HEALTH CHECK
  */
 app.get("/health", (req, res) => {
     res.json({ status: "OK" });
 });
 
 /**
- * GET all tasks
+ * GET TASKS
  */
 app.get("/tasks", async (req, res) => {
     try {
         if (!pool) {
-            return res.status(500).json({ message: "Database not connected" });
+            return res.status(500).json({ message: "DB not connected" });
         }
 
         const result = await pool.request().query("SELECT * FROM tasks");
-        res.status(200).json(result.recordset);
+        res.json(result.recordset);
 
-    } catch (error) {
-        console.error(error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ message: "Error retrieving tasks" });
     }
 });
 
 /**
- * CREATE task
+ * CREATE TASK
  */
 app.post("/tasks", async (req, res) => {
     try {
         if (!pool) {
-            return res.status(500).json({ message: "Database not connected" });
+            return res.status(500).json({ message: "DB not connected" });
         }
 
         const { title, description } = req.body;
@@ -97,47 +107,45 @@ app.post("/tasks", async (req, res) => {
                 VALUES (@title, @description)
             `);
 
-        res.status(201).json({ message: "Task created successfully" });
+        res.status(201).json({ message: "Task created" });
 
-    } catch (error) {
-        console.error(error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ message: "Error creating task" });
     }
 });
 
 /**
- * DELETE task
+ * DELETE TASK
  */
 app.delete("/tasks/:id", async (req, res) => {
     try {
         if (!pool) {
-            return res.status(500).json({ message: "Database not connected" });
+            return res.status(500).json({ message: "DB not connected" });
         }
 
         const { id } = req.params;
 
         await pool.request()
             .input("id", sql.Int, id)
-            .query(`
-                DELETE FROM tasks WHERE id = @id
-            `);
+            .query("DELETE FROM tasks WHERE id = @id");
 
-        res.status(200).json({ message: "Task deleted successfully" });
+        res.json({ message: "Task deleted" });
 
-    } catch (error) {
-        console.error(error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ message: "Error deleting task" });
     }
 });
 
 /**
- * START SERVER (Azure-safe)
+ * START SERVER (VERY IMPORTANT FOR AZURE)
  */
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
 
-    // connect DB AFTER server starts
-    await startDatabase();
+    // connect DB AFTER server starts (prevents Azure crash)
+    connectDB();
 });
