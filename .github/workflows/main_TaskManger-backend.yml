@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'backend/**'
+      - '.github/workflows/main_TaskManger-backend.yml'
 
   workflow_dispatch:
 
@@ -22,7 +23,7 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies (backend only)
+      - name: Install backend dependencies
         working-directory: ./backend
         run: npm install
 
@@ -32,8 +33,9 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy Backend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: TaskManger-backend
