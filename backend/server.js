@@ -15,12 +15,15 @@ const config = {
     database: process.env.DB_NAME,
     options: {
         encrypt: true,
-        trustServerCertificate: false, // safer for Azure
+        trustServerCertificate: false,
         connectTimeout: 30000,
         requestTimeout: 30000
     }
 };
 
+/**
+ * DB CONNECTION (SAFE WRAPPED)
+ */
 async function startServer() {
     try {
         await sql.connect(config);
@@ -40,12 +43,13 @@ async function startServer() {
         console.log("Table ready");
 
     } catch (err) {
-        console.log("Error connecting to database:", err);
+        // IMPORTANT: do NOT crash Azure app
+        console.log("DATABASE CONNECTION ERROR:", err.message);
     }
 }
 
 /**
- * Health check
+ * HEALTH CHECK (IMPORTANT FOR AZURE)
  */
 app.get("/health", (req, res) => {
     res.json({ status: "OK" });
@@ -87,7 +91,6 @@ app.post("/tasks", async (req, res) => {
 /**
  * DELETE task
  */
-
 app.delete("/tasks/:id", async (req, res) => {
     try {
         const { id } = req.params;
@@ -104,10 +107,14 @@ app.delete("/tasks/:id", async (req, res) => {
     }
 });
 
+/**
+ * START SERVER (IMPORTANT FOR AZURE)
+ */
 const PORT = process.env.PORT || 3000;
 
-startServer().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+
+    // connect AFTER server starts (prevents Azure crash)
+    startServer();
 });
