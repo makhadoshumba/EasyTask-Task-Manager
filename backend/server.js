@@ -60,10 +60,16 @@ app.get("/health", (req, res) => {
  */
 app.get("/tasks", async (req, res) => {
     try {
-        const result = await sql.query("SELECT * FROM tasks");
-        res.status(200).json(result.recordset);
+        console.log("Trying DB query...");
+
+        const result = await sql.query("SELECT 1 AS test");
+
+        console.log("DB response received");
+
+        res.json(result.recordset);
+
     } catch (error) {
-        console.error(error);
+        console.error("TASK ERROR:", error);
         res.status(500).json({ message: "Error retrieving tasks" });
     }
 });
