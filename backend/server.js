@@ -26,7 +26,7 @@ async function startServer() {
         await sql.connect(config);
         console.log("Connected to SQL Server");
 
-        await sql.query(`
+        const result = await sql.query(`
             IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'tasks')
             BEGIN
                 CREATE TABLE tasks (
@@ -40,7 +40,8 @@ async function startServer() {
         console.log("Table ready");
 
     } catch (err) {
-        console.log("Error connecting to database:", err);
+        console.error("DATABASE CONNECTION FAILED ❌", err);
+        process.exit(1); // 🔥 stop app so Azure shows real error
     }
 }
 
