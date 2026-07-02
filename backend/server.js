@@ -21,11 +21,19 @@ const config = {
 };
 
 /**
- * DB CONNECTION (SAFE WRAPPED)
+ * DB CONNECTION
  */
 async function startServer() {
     try {
+        console.log("=================================");
+        console.log("Starting database connection...");
+        console.log("DB_SERVER:", process.env.DB_SERVER);
+        console.log("DB_NAME:", process.env.DB_NAME);
+        console.log("DB_USER:", process.env.DB_USER);
+        console.log("=================================");
+
         await sql.connect(config);
+
         console.log("Connected to SQL Server");
 
         await sql.query(`
@@ -42,27 +50,33 @@ async function startServer() {
         console.log("Table ready");
 
     } catch (err) {
-        // IMPORTANT: do NOT crash Azure app
-        console.log("DATABASE CONNECTION ERROR:", err.message);
+        console.error("=================================");
+        console.error("DATABASE CONNECTION ERROR");
+        console.error(err);
+        console.error("=================================");
     }
 }
 
 /**
- * HEALTH CHECK (IMPORTANT FOR AZURE)
+ * HEALTH CHECK
  */
 app.get("/health", (req, res) => {
-    res.json({ status: "OK" });
+    res.status(200).json({
+        status: "OK"
+    });
 });
 
 /**
- * GET all tasks
+ * DB TEST
  */
-app.get("/tasks", async (req, res) => {
+app.get("/db-test", async (req, res) => {
     try {
-        const result = await sql.query("SELECT * FROM tasks");
+        const result = await sql.query("SELECT 1 AS test");
+
         res.status(200).json(result.recordset);
+
     } catch (error) {
-        console.error(error);
+        console.error("DB TEST ERROR:", error);
 
         res.status(500).json({
             message: error.message,
@@ -72,7 +86,26 @@ app.get("/tasks", async (req, res) => {
 });
 
 /**
- * POST task
+ * GET ALL TASKS
+ */
+app.get("/tasks", async (req, res) => {
+    try {
+        const result = await sql.query("SELECT * FROM tasks");
+
+        res.status(200).json(result.recordset);
+
+    } catch (error) {
+        console.error("GET TASKS ERROR:", error);
+
+        res.status(500).json({
+            message: error.message,
+            code: error.code
+        });
+    }
+});
+
+/**
+ * CREATE TASK
  */
 app.post("/tasks", async (req, res) => {
     try {
@@ -83,35 +116,48 @@ app.post("/tasks", async (req, res) => {
             VALUES (${title}, ${description})
         `;
 
-        res.status(201).json({ message: "Task created successfully" });
+        res.status(201).json({
+            message: "Task created successfully"
+        });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error creating task" });
+        console.error("CREATE TASK ERROR:", error);
+
+        res.status(500).json({
+            message: error.message,
+            code: error.code
+        });
     }
 });
 
 /**
- * DELETE task
+ * DELETE TASK
  */
 app.delete("/tasks/:id", async (req, res) => {
     try {
         const { id } = req.params;
 
         await sql.query`
-            DELETE FROM tasks WHERE id = ${id}
+            DELETE FROM tasks
+            WHERE id = ${id}
         `;
 
-        res.status(200).json({ message: "Task deleted successfully" });
+        res.status(200).json({
+            message: "Task deleted successfully"
+        });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error deleting task" });
+        console.error("DELETE TASK ERROR:", error);
+
+        res.status(500).json({
+            message: error.message,
+            code: error.code
+        });
     }
 });
 
 /**
- * START SERVER (IMPORTANT FOR AZURE)
+ * START SERVER
  */
 const PORT = process.env.PORT || 3000;
 
