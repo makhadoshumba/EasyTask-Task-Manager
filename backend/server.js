@@ -1,4 +1,3 @@
-require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const sql = require("mssql");
@@ -60,17 +59,15 @@ app.get("/health", (req, res) => {
  */
 app.get("/tasks", async (req, res) => {
     try {
-        console.log("Trying DB query...");
-
-        const result = await sql.query("SELECT 1 AS test");
-
-        console.log("DB response received");
-
-        res.json(result.recordset);
-
+        const result = await sql.query("SELECT * FROM tasks");
+        res.status(200).json(result.recordset);
     } catch (error) {
-        console.error("TASK ERROR:", error);
-        res.status(500).json({ message: "Error retrieving tasks" });
+        console.error(error);
+
+        res.status(500).json({
+            message: error.message,
+            code: error.code
+        });
     }
 });
 
@@ -118,9 +115,8 @@ app.delete("/tasks/:id", async (req, res) => {
  */
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-
-    // connect AFTER server starts (prevents Azure crash)
-    startServer();
+startServer().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
 });
