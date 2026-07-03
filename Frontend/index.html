@@ -393,6 +393,53 @@ textarea.glass-input {
 
     .search-input { width: 160px; }
 }    
+/* Loading spinner */
+.loading-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 350px;
+    text-align: center;
+    width: 100%;
+}
+
+.loading-state h3 {
+    margin-top: 20px;
+    margin-bottom: 8px;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.loading-state p {
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.6;
+    max-width: 320px;
+}
+
+/* Improved spinner */
+.spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid rgba(255,255,255,0.08);
+    border-top: 5px solid var(--g-end);
+    border-right: 5px solid var(--g-start);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
 </style>
 
 </head>
@@ -434,14 +481,20 @@ textarea.glass-input {
         <p class="sidebar-footer">Tasks sync with your server in real time.</p>
     </aside>
 
-    <!-- CONTENT: task list -->
-    <section class="content">
-        <div class="content-header">
-            <div class="content-heading">Your Tasks</div>
-            <div class="content-sub">Everything you need to get done</div>
-        </div>
-        <div id="taskList" class="task-list"></div>
-    </section>
+<section class="content">
+    <div class="content-header">
+        <div class="content-heading">Your Tasks</div>
+        <div class="content-sub">Everything you need to get done</div>
+    </div>
+
+    <div id="loadingTasks" class="loading-state">
+        <div class="spinner"></div>
+        <h3>Loading your tasks...</h3>
+        <p>Please wait as we set up your workspace, please be patient.</p>
+    </div>
+
+    <div id="taskList" class="task-list"></div>
+</section>
 
 </main>
 
@@ -451,17 +504,37 @@ let tasks = [];
 
 /* ── LOAD ── */
 async function loadTasks() {
+    const taskList = document.getElementById("taskList");
+    const loading = document.getElementById("loadingTasks");
+
+    loading.style.display = "flex";
+    taskList.style.display = "none";
+
     try {
         const res = await fetch(API_URL);
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+
         tasks = await res.json();
+
         renderTasks(tasks);
+
+        loading.style.display = "none";
+        taskList.style.display = "flex";
+
     } catch (err) {
         console.error(err);
-        document.getElementById("taskList").innerHTML = `
+
+        loading.style.display = "none";
+        taskList.style.display = "block";
+
+        taskList.innerHTML = `
             <div class="empty">
                 <span class="empty-icon">⚡</span>
                 <h3>Can't reach the server</h3>
-                <p>Make sure the API is running at ${API_URL}</p>
+                <p>Please try again in a moment.</p>
             </div>`;
     }
 }
