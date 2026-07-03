@@ -38,7 +38,7 @@ Built with simplicity in mind, EasyTask is accessible to all users. Unlike many 
 <br>
 <p><b>Project Architectural diagram:</b><p>
 
-<img src="frontend/Architectural diagram.jpg" width="600" height="500">
+<img src="Frontend/Architectural diagram.jpg" width="600" height="500">
 <br>
 <h3>Project Structure:</h3>
 <pre>
