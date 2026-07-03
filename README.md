@@ -57,3 +57,6 @@ EasyTask task Manager
         └── Tasks
 </pre>
 <br>
+# Databse Table Entity Relationship Diagram:
+<img src="Frontend/Screenshot(22).png">
+<br>
