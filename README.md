@@ -1,8 +1,11 @@
-# EasyTask Task Manager(Project solution)
+# EasyTask (Serverless Task Manager)
+### What is EasyTask
 EasyTask is a web application designed to help people organize and manage their daily tasks with ease. It is built to cater to everyone, with the goal of providing a simple and accessible solution for everyone.
 
+### What does it do
 Whether you're handling personal to-do lists, managing project activities, or organizing your daily workflow, EasyTask offers an efficient way to stay on top of your responsibilities.
 
+### What makes it special
 Built with simplicity in mind, EasyTask is accessible to all users. Unlike many task managers that may feel overwhelming or require technical knowledge, EasyTask requires no technical expertise. Its simple and intuitive interface makes it easy to create, track, update, and complete tasks, allowing users to focus on what matters most. 
 
 # Key Features
